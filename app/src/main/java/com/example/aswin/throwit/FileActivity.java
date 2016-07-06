@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -27,9 +26,15 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.widget.Toast;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout.LayoutParams;
+import android.view.MotionEvent;
 
 public class FileActivity extends Activity {
 
@@ -37,7 +42,9 @@ public class FileActivity extends Activity {
     Button btnShowProgress;
     ImageView viewImage;
     Button b;
-
+    //Floating ImageView
+    private float xCoOrdinate, yCoOrdinate;
+    private LayoutParams layoutParams ;
     // Progress Dialog
     private ProgressDialog pDialog;
     ImageView my_image;
@@ -49,14 +56,17 @@ public class FileActivity extends Activity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        //Navigation Drawer Initializing
+        //Navigation Drawer Initalizing Done
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        //Load Button Initialization
         b=(Button)findViewById(R.id.buttonLoadPicture);
         viewImage=(ImageView)findViewById(R.id.my_image);
+        // Image view to show image after downloading
+        //my_image = (ImageView)findViewById(R.id.my_image);
         // show progress bar button
         btnShowProgress = (Button) findViewById(R.id.btnProgressBar);
-        // Image view to show image after downloading
-        my_image = (ImageView) findViewById(R.id.my_image);
         /**
          * Show Progress bar click event
          * */
@@ -72,6 +82,23 @@ public class FileActivity extends Activity {
                                  public void onClick(View v) {
                                      selectImage();
                                  }
+        });
+        viewImage.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent event) {
+                switch (event.getActionMasked()) {
+                    case MotionEvent.ACTION_DOWN:
+                        xCoOrdinate = view.getX() - event.getRawX();
+                        yCoOrdinate = view.getY() - event.getRawY();
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        view.animate().x(event.getRawX() + xCoOrdinate).y(event.getRawY() + yCoOrdinate).setDuration(0).start();
+                        break;
+                    default:
+                        return false;
+                }
+                return true;
+            }
         });
     }
 
@@ -175,7 +202,7 @@ public class FileActivity extends Activity {
             // Reading image path from sdcard
             String imagePath = Environment.getExternalStorageDirectory().toString() + "/downloadedfile.jpg";
             // setting downloaded into image view
-            my_image.setImageDrawable(Drawable.createFromPath(imagePath));
+            viewImage.setImageDrawable(Drawable.createFromPath(imagePath));
         }
 
     }
@@ -187,6 +214,61 @@ public class FileActivity extends Activity {
         return true;
     }
 
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // The action bar home/up action should open or close the drawer.
+        // ActionBarDrawerToggle will take care of this.
+        switch (item.getItemId()) {
+            case R.id.about:
+                //showMsg("This helps you share files");
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+                // Setting Dialog Title
+                alertDialogBuilder.setTitle("About");
+                // Setting Dialog Message
+                alertDialogBuilder.setMessage("This is a application which will help you throw files");
+                // Setting Icon to Dialog
+                //alertDialog.setIcon(R.drawable.tick);
+                // Setting OK Button
+                alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Write your code here to execute after dialog closed
+                        Toast.makeText(getApplicationContext(), "Enjoy", Toast.LENGTH_SHORT).show();
+                    }
+                });
+                // Showing Alert Message
+                alertDialogBuilder.show();
+                //return true;
+            case R.id.help:
+                //showMsg("Help is under construction");
+                AlertDialog.Builder alertDialogBuilder1 = new AlertDialog.Builder(this);
+                // Setting Dialog Title
+                alertDialogBuilder1.setTitle("Help");
+                // Setting Dialog Message
+                alertDialogBuilder1.setMessage("Help is under permenant construction");
+                // Setting Icon to Dialog
+                //alertDialog.setIcon(R.drawable.tick);
+                // Setting OK Button
+                alertDialogBuilder1.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Write your code here to execute after dialog closed
+                        Toast.makeText(getApplicationContext(), "Enjoy", Toast.LENGTH_SHORT).show();
+                    }
+                });
+                alertDialogBuilder1.show();
+                //return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void showMsg(String msg) {
+        Toast toast = Toast.makeText(FileActivity.this, msg, Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.CENTER, toast.getXOffset() / 2, toast.getYOffset() / 2);
+        toast.show();
+    }
+
+    //Get image from gallery
     private void selectImage() {
         final CharSequence[] options = { "Take Photo", "Choose from Gallery","Cancel" };
         AlertDialog.Builder builder = new AlertDialog.Builder(FileActivity.this);
